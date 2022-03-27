@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@switchboard-xyz/switchboard-v2": "^0.0.68"
+  }
+}
