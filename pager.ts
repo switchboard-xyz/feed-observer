@@ -5,18 +5,14 @@
 
 import PdClient from "node-pagerduty";
 import * as os from "os";
-import { logger } from "./logging";
 
 export class Pager {
   static async sendEvent(
+    routingKey: string,
     severity: string,
     summary: string,
     customDetails: any = {}
   ): Promise<void> {
-    let routingKey = process.env.PAGERDUTY_EVENT_KEY ?? "";
-    if (routingKey.length == 0) {
-      return;
-    }
     let pdClient = new PdClient(routingKey);
     Object.assign(customDetails, {
       source: os.hostname(),
@@ -36,7 +32,7 @@ export class Pager {
       event_action: "trigger",
       client: os.hostname(),
     };
-    logger.info("Event sending to pagerduty:", payload);
+    console.info("Event sending to pagerduty:", payload);
     await pdClient.events.sendEvent(payload);
   }
 }
