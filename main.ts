@@ -6,6 +6,10 @@ import * as sbv2 from "@switchboard-xyz/switchboard-v2";
 import * as dotenv from "dotenv"; // should be loaded upon entry
 dotenv.config();
 
+export function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function main() {
   const program = await getProgram(process.env.CLUSTER! as Cluster);
   const aggregatorPubkey: PublicKey = new PublicKey(
@@ -30,6 +34,7 @@ async function main() {
   );
   while (true) {
     const balance = await leaseAccount.getBalance();
+    console.log(`${aggregatorPubkey.toBase58()} balance ${balance}`);
     if (balance < pageThreshold) {
       await Pager.sendEvent(
         pagerKey,
@@ -40,13 +45,15 @@ async function main() {
         }
       );
     }
+    await sleep(1000);
   }
 }
 
 async function getProgram(cluster: Cluster): Promise<anchor.Program> {
+  const url = process.env.RPC_URL!;
   switch (cluster) {
     case "devnet": {
-      const connection = new Connection(clusterApiUrl(cluster));
+      const connection = new Connection(url);
       const dummyKeypair = anchor.web3.Keypair.generate();
       const wallet = new anchor.Wallet(dummyKeypair);
       const provider = new anchor.Provider(connection, wallet, {
@@ -61,7 +68,7 @@ async function getProgram(cluster: Cluster): Promise<anchor.Program> {
     }
     case "mainnet-beta": {
       {
-        const connection = new Connection(clusterApiUrl(cluster));
+        const connection = new Connection(url);
         const dummyKeypair = anchor.web3.Keypair.generate();
         const wallet = new anchor.Wallet(dummyKeypair);
         const provider = new anchor.Provider(connection, wallet, {
